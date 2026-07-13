@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HDI Predictor · Human Development Index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<!-- ── Navigation ───────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <span class="brand-icon">🌍</span>
+    <span>HDI Predictor</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link active">Predict</a>
+    <a href="/visualizations" class="nav-link">Visualizations</a>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Machine Learning · Linear Regression</div>
+    <h1 class="hero-title">Human Development<br><span class="accent">Index Predictor</span></h1>
+    <p class="hero-subtitle">
+      Enter country-level indicators to predict the HDI score using a
+      trained Linear Regression model powered by real-world data.
+    </p>
+
+    <!-- Model stats strip -->
+    {% if stats %}
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.r2_test }}</span>
+        <span class="stat-label">R² Score</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.rmse }}</span>
+        <span class="stat-label">RMSE</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.train_size }}</span>
+        <span class="stat-label">Training Samples</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.test_size }}</span>
+        <span class="stat-label">Test Samples</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="hero-globe" aria-hidden="true">🌐</div>
+</header>
+
+<!-- ── Prediction Form ───────────────────────────────────────────────────────── -->
+<main class="main-content">
+  <div class="form-card">
+    <div class="form-header">
+      <h2 class="form-title">Enter Country Indicators</h2>
+      <p class="form-subtitle">All fields are required for an accurate prediction.</p>
+    </div>
+
+    <form action="/predict" method="POST" class="predict-form" id="predictForm">
+
+      <!-- Country (optional) -->
+      <div class="form-group full-width">
+        <label class="form-label" for="country">Country Name <span class="optional">(optional)</span></label>
+        <input type="text" id="country" name="country" class="form-input"
+               placeholder="e.g. Norway" maxlength="60" />
+      </div>
+
+      <!-- Life Expectancy -->
+      <div class="form-group">
+        <label class="form-label" for="life_expectancy">
+          Life Expectancy
+          <span class="tooltip" title="Average number of years a newborn is expected to live (years)">ⓘ</span>
+        </label>
+        <div class="input-wrapper">
+          <input type="number" id="life_expectancy" name="life_expectancy"
+                 class="form-input" placeholder="72.4" step="0.1" min="20" max="90" required />
+          <span class="input-unit">years</span>
+        </div>
+        <div class="range-hint">Range: 20 – 90 years</div>
+      </div>
+
+      <!-- Mean Years of Schooling -->
+      <div class="form-group">
+        <label class="form-label" for="mean_years_schooling">
+          Mean Years of Schooling
+          <span class="tooltip" title="Average number of years adults (25+) have spent in education">ⓘ</span>
+        </label>
+        <div class="input-wrapper">
+          <input type="number" id="mean_years_schooling" name="mean_years_schooling"
+                 class="form-input" placeholder="12.0" step="0.1" min="0" max="20" required />
+          <span class="input-unit">years</span>
+        </div>
+        <div class="range-hint">Range: 0 – 20 years</div>
+      </div>
+
+      <!-- GNI Per Capita -->
+      <div class="form-group full-width">
+        <label class="form-label" for="gni_per_capita">
+          GNI Per Capita (PPP)
+          <span class="tooltip" title="Gross National Income per person in purchasing power parity USD">ⓘ</span>
+        </label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="number" id="gni_per_capita" name="gni_per_capita"
+                 class="form-input prefixed" placeholder="15000" step="100" min="100" max="100000" required />
+          <span class="input-unit">USD (PPP)</span>
+        </div>
+        <div class="range-hint">Range: $100 – $100,000</div>
+      </div>
+
+      <button type="submit" class="btn-predict" id="submitBtn">
+        <span class="btn-text">Predict HDI Score</span>
+        <span class="btn-icon">→</span>
+      </button>
+
+    </form>
+  </div>
+
+  <!-- ── How it works ───────────────────────────────────────────────────────── -->
+  <section class="how-it-works">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon">📊</div>
+        <h3>Data Collection</h3>
+        <p>Real-world HDI data covering 88 countries with life expectancy, education, and income metrics.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon">🔧</div>
+        <h3>Preprocessing</h3>
+        <p>Missing value imputation, label encoding, and a 75/25 train-test split ensure clean inputs.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon">🤖</div>
+        <h3>Linear Regression</h3>
+        <p>Scikit-learn's LinearRegression model is trained and serialized with Pickle for fast inference.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <div class="step-icon">🎯</div>
+        <h3>Category Mapping</h3>
+        <p>The predicted score maps to UNDP categories: Very High ≥0.8, High ≥0.7, Medium ≥0.55, Low.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>HDI Predictor · Built with Python, Flask &amp; Scikit-learn</p>
+  <p class="footer-tech">NumPy · Pandas · Matplotlib · Seaborn</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

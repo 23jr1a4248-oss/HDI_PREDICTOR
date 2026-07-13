@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HDI Prediction Result · HDI Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<!-- ── Navigation ───────────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <span class="brand-icon">🌍</span>
+    <span>HDI Predictor</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Predict</a>
+    <a href="/visualizations" class="nav-link">Visualizations</a>
+  </div>
+</nav>
+
+<main class="main-content result-page">
+
+{% if error %}
+<!-- ── Error State ─────────────────────────────────────────────────────────── -->
+<div class="result-card error-card">
+  <div class="error-icon">⚠️</div>
+  <h2 class="error-title">Prediction Failed</h2>
+  <p class="error-msg">{{ error }}</p>
+  <a href="/" class="btn-back">← Try Again</a>
+</div>
+
+{% else %}
+<!-- ── Success Result ──────────────────────────────────────────────────────── -->
+
+<!-- Score hero -->
+<div class="result-card score-hero {{ css_class }}">
+  <div class="score-header">
+    <span class="country-label">{{ country }}</span>
+    <span class="category-badge badge-{{ css_class }}">{{ category }} HDI</span>
+  </div>
+
+  <div class="score-display">
+    <span class="score-number" id="scoreNum" data-target="{{ predicted_hdi }}">0.000</span>
+    <span class="score-label">Predicted HDI Score</span>
+  </div>
+
+  <!-- Gauge bar -->
+  <div class="gauge-container">
+    <div class="gauge-bar">
+      <div class="gauge-fill {{ css_class }}" style="--target-width: {{ (predicted_hdi * 100)|round(1) }}%;"></div>
+    </div>
+    <div class="gauge-labels">
+      <span>0.0</span>
+      <span class="gauge-mark" style="left:55%">0.55</span>
+      <span class="gauge-mark" style="left:70%">0.70</span>
+      <span class="gauge-mark" style="left:80%">0.80</span>
+      <span>1.0</span>
+    </div>
+  </div>
+
+  <!-- Category legend -->
+  <div class="category-legend">
+    <span class="legend-item {% if css_class == 'low' %}active{% endif %}">🔴 Low &lt;0.55</span>
+    <span class="legend-item {% if css_class == 'medium' %}active{% endif %}">🟡 Medium 0.55–0.70</span>
+    <span class="legend-item {% if css_class == 'high' %}active{% endif %}">🟢 High 0.70–0.80</span>
+    <span class="legend-item {% if css_class == 'very-high' %}active{% endif %}">🔵 Very High ≥0.80</span>
+  </div>
+</div>
+
+<!-- ── Input Summary ───────────────────────────────────────────────────────── -->
+<div class="result-row">
+  <div class="result-card inputs-card">
+    <h3 class="card-title">Input Features</h3>
+    <div class="input-summary">
+      <div class="input-row">
+        <span class="input-name">🫀 Life Expectancy</span>
+        <span class="input-val">{{ life_exp }} <small>years</small></span>
+      </div>
+      <div class="input-row">
+        <span class="input-name">📚 Mean Years of Schooling</span>
+        <span class="input-val">{{ school_years }} <small>years</small></span>
+      </div>
+      <div class="input-row">
+        <span class="input-name">💰 GNI Per Capita</span>
+        <span class="input-val">${{ "{:,}".format(gni) }} <small>USD PPP</small></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-indices -->
+  <div class="result-card indices-card">
+    <h3 class="card-title">HDI Sub-Indices</h3>
+    <div class="index-bars">
+
+      <div class="index-item">
+        <div class="index-label-row">
+          <span>Life Index</span>
+          <span class="index-score">{{ life_index }}</span>
+        </div>
+        <div class="mini-bar"><div class="mini-fill" style="--w:{{ (life_index * 100)|round(1) }}%;"></div></div>
+      </div>
+
+      <div class="index-item">
+        <div class="index-label-row">
+          <span>Education Index</span>
+          <span class="index-score">{{ edu_index }}</span>
+        </div>
+        <div class="mini-bar"><div class="mini-fill" style="--w:{{ (edu_index * 100)|round(1) }}%;"></div></div>
+      </div>
+
+      <div class="index-item">
+        <div class="index-label-row">
+          <span>Income Index</span>
+          <span class="index-score">{{ income_index }}</span>
+        </div>
+        <div class="mini-bar"><div class="mini-fill" style="--w:{{ (income_index * 100)|round(1) }}%;"></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Model Metrics ───────────────────────────────────────────────────────── -->
+{% if stats %}
+<div class="result-card metrics-card">
+  <h3 class="card-title">Model Performance Metrics</h3>
+  <div class="metrics-grid">
+    <div class="metric-box">
+      <span class="metric-val">{{ stats.r2_train }}</span>
+      <span class="metric-name">R² Train</span>
+    </div>
+    <div class="metric-box">
+      <span class="metric-val">{{ stats.r2_test }}</span>
+      <span class="metric-name">R² Test</span>
+    </div>
+    <div class="metric-box">
+      <span class="metric-val">{{ stats.rmse }}</span>
+      <span class="metric-name">RMSE</span>
+    </div>
+    <div class="metric-box">
+      <span class="metric-val">{{ stats.train_size }}</span>
+      <span class="metric-name">Train Samples</span>
+    </div>
+    <div class="metric-box">
+      <span class="metric-val">{{ stats.test_size }}</span>
+      <span class="metric-name">Test Samples</span>
+    </div>
+    <div class="metric-box">
+      <span class="metric-val">Linear</span>
+      <span class="metric-name">Model Type</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="action-row">
+  <a href="/" class="btn-back">← New Prediction</a>
+  <a href="/visualizations" class="btn-viz">View Visualizations →</a>
+</div>
+
+{% endif %}
+</main>
+
+<footer class="footer">
+  <p>HDI Predictor · Built with Python, Flask &amp; Scikit-learn</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

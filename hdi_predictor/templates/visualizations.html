@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EDA Visualizations · HDI Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <span class="brand-icon">🌍</span>
+    <span>HDI Predictor</span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Predict</a>
+    <a href="/visualizations" class="nav-link active">Visualizations</a>
+  </div>
+</nav>
+
+<main class="main-content">
+  <div class="viz-header">
+    <h1 class="section-title">Exploratory Data Analysis</h1>
+    <p class="section-sub">Visual insights from the HDI dataset used to train the model.</p>
+  </div>
+
+  <div class="viz-grid">
+
+    <div class="viz-card wide">
+      <h3 class="viz-title">Feature Distributions</h3>
+      <p class="viz-desc">Histograms with KDE curves for Life Expectancy, Years of Schooling, and GNI per capita across all countries.</p>
+      <img src="{{ url_for('static', filename='plots/distributions.png') }}" alt="Feature Distributions" class="viz-img" />
+    </div>
+
+    <div class="viz-card">
+      <h3 class="viz-title">Correlation Heatmap</h3>
+      <p class="viz-desc">Pearson correlation between all numerical features and the HDI score.</p>
+      <img src="{{ url_for('static', filename='plots/heatmap.png') }}" alt="Correlation Heatmap" class="viz-img" />
+    </div>
+
+    <div class="viz-card">
+      <h3 class="viz-title">Strip Plot – HDI by Category</h3>
+      <p class="viz-desc">Distribution of HDI scores across the four UNDP development categories.</p>
+      <img src="{{ url_for('static', filename='plots/strip_plot.png') }}" alt="Strip Plot" class="viz-img" />
+    </div>
+
+    <div class="viz-card">
+      <h3 class="viz-title">GNI Per Capita vs HDI Score</h3>
+      <p class="viz-desc">Scatter plot showing the relationship between income and human development, coloured by category.</p>
+      <img src="{{ url_for('static', filename='plots/scatter_gni.png') }}" alt="GNI vs HDI" class="viz-img" />
+    </div>
+
+    <div class="viz-card">
+      <h3 class="viz-title">Actual vs Predicted HDI</h3>
+      <p class="viz-desc">Model performance: predicted scores plotted against actual values on the test set.</p>
+      <img src="{{ url_for('static', filename='plots/actual_vs_predicted.png') }}" alt="Actual vs Predicted" class="viz-img" />
+    </div>
+
+    <div class="viz-card wide">
+      <h3 class="viz-title">Regression Coefficients</h3>
+      <p class="viz-desc">Magnitude and direction of each feature's contribution to the predicted HDI score in the Linear Regression model.</p>
+      <img src="{{ url_for('static', filename='plots/feature_importance.png') }}" alt="Feature Importance" class="viz-img" />
+    </div>
+
+  </div>
+
+  {% if stats %}
+  <div class="result-card metrics-card" style="margin-top:2rem;">
+    <h3 class="card-title">Model Summary</h3>
+    <div class="metrics-grid">
+      <div class="metric-box"><span class="metric-val">{{ stats.r2_train }}</span><span class="metric-name">R² Train</span></div>
+      <div class="metric-box"><span class="metric-val">{{ stats.r2_test }}</span><span class="metric-name">R² Test</span></div>
+      <div class="metric-box"><span class="metric-val">{{ stats.rmse }}</span><span class="metric-name">RMSE</span></div>
+      <div class="metric-box"><span class="metric-val">{{ stats.train_size }}</span><span class="metric-name">Train Samples</span></div>
+      <div class="metric-box"><span class="metric-val">{{ stats.test_size }}</span><span class="metric-name">Test Samples</span></div>
+      <div class="metric-box"><span class="metric-val">Linear</span><span class="metric-name">Algorithm</span></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="action-row" style="margin-top:2rem;">
+    <a href="/" class="btn-predict" style="text-decoration:none; display:inline-flex; align-items:center; gap:.5rem;">
+      ← Make a Prediction
+    </a>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>HDI Predictor · Built with Python, Flask &amp; Scikit-learn</p>
+</footer>
+
+</body>
+</html>
